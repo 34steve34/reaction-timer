@@ -4,6 +4,7 @@ const ASSETS = [
   './manifest.json',
   './cat-icon.png',
   './cat-icon-512.png'
+  './background.jpg'
 ];
 
 self.addEventListener('install', (e) => {
@@ -17,3 +18,4 @@ self.addEventListener('fetch', (e) => {
     caches.match(e.request).then(res => res || fetch(e.request))
   );
 });
+
