@@ -1,25 +1,71 @@
+<!-- 
+REACTION TIMER APP
+==================
+Created: January 2026
+
+FEATURES:
+- Random start delay: 3-5 seconds after pressing START
+- Adjustable interval between alerts (default: 10 seconds)
+- Vibration + sound alert at each interval
+- Alert counter: tracks total number of alerts
+- Count-up timer: shows elapsed time in MM:SS.T format (includes tenths of seconds)
+- Optional warning system: plays distinct tone & vibration X seconds before specified alert
+
+CONTROLS:
+- START button: begins the timer sequence
+- RUNNING button: stops the timer (appears after start)
+- Interval setting: change time between alerts (1-300 seconds)
+- Warning checkbox: enable pre-alert warnings
+  - Warn seconds: how many seconds before the target alert (1-10)
+  - Alert #: which alert number to warn before (2-99)
+
+ALERTS:
+- Regular alert: 1000 Hz tone, 0.5s vibration
+- Warning alert: 600 Hz tone (lower), 0.3s vibration (shorter)
+
+EXAMPLE:
+If interval = 10s, warning enabled, warn 3s before alert #4:
+- Alert 1 at 0s
+- Alert 2 at 10s  
+- Alert 3 at 20s
+- WARNING at 27s (3s before alert 4)
+- Alert 4 at 30s
+- Alert 5 at 40s
+- etc.
+
+TECHNICAL:
+- Pure HTML/CSS/JavaScript (no dependencies)
+- Uses Web Audio API for sound
+- Uses Vibration API for haptic feedback
+- Progressive Web App (PWA) installable to home screen
+- Works completely offline after first load
+- Local storage not used - all state in memory
+
+USAGE:
+1. Open in mobile browser (Chrome or Samsung Internet recommended)
+2. Add to home screen for app-like experience
+3. Adjust settings before pressing START
+4. Timer begins after random 3-5 second delay
+5. Press RUNNING to stop at any time
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1a1a2e">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    
-    <link rel="manifest" href="manifest.json">
-    
     <title>Reaction Timer</title>
     <style>
-        /* [Original styles preserved for brevity] */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -29,7 +75,24 @@
             flex-direction: column;
             padding: 20px;
             overflow-x: hidden;
+            position: relative;
         }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('BACKGROUND.JPG');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.5;
+            z-index: -1;
+        }
+
         .container {
             flex: 1;
             display: flex;
@@ -40,12 +103,14 @@
             width: 100%;
             margin: 0 auto;
         }
+
         h1 {
             font-size: 2rem;
             margin-bottom: 40px;
             text-align: center;
             color: #4a90e2;
         }
+
         .settings {
             width: 100%;
             background: rgba(255, 255, 255, 0.1);
@@ -53,26 +118,31 @@
             border-radius: 15px;
             margin-bottom: 30px;
         }
+
         .setting-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
+
         .setting-row:last-child {
             margin-bottom: 0;
         }
+
         .checkbox-row {
             display: flex;
             align-items: center;
             margin-bottom: 15px;
             gap: 10px;
         }
+
         input[type="checkbox"] {
             width: 20px;
             height: 20px;
             cursor: pointer;
         }
+
         .warning-config {
             display: flex;
             align-items: center;
@@ -81,17 +151,21 @@
             margin-top: 8px;
             padding-left: 30px;
         }
+
         .warning-config input[type="number"] {
             width: 60px;
         }
+
         .warning-config span {
             font-size: 0.9rem;
             color: #ddd;
         }
+
         label {
             font-size: 1rem;
             color: #fff;
         }
+
         input[type="number"] {
             width: 80px;
             padding: 10px;
@@ -102,6 +176,7 @@
             color: #fff;
             text-align: center;
         }
+
         .start-btn {
             width: 250px;
             height: 250px;
@@ -117,22 +192,27 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
+
         .start-btn:active {
             transform: scale(0.95);
             box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
         }
+
         .start-btn.running {
             background: linear-gradient(135deg, #e2a44a, #bd8735);
             box-shadow: 0 10px 30px rgba(226, 164, 74, 0.4);
         }
+
         .start-btn.waiting {
             background: linear-gradient(135deg, #e24a4a, #bd3535);
             box-shadow: 0 10px 30px rgba(226, 74, 74, 0.4);
         }
+
         .start-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
+
         .status {
             margin-top: 30px;
             font-size: 1.2rem;
@@ -140,6 +220,7 @@
             min-height: 30px;
             color: #4a90e2;
         }
+
         .counter {
             margin-top: 20px;
             font-size: 1.8rem;
@@ -147,6 +228,7 @@
             color: #4a90e2;
             min-height: 40px;
         }
+
         .timer {
             margin-top: 15px;
             font-size: 2.5rem;
@@ -155,6 +237,7 @@
             min-height: 50px;
             font-family: 'Courier New', monospace;
         }
+
         @media (max-width: 400px) {
             .start-btn {
                 width: 200px;
@@ -193,7 +276,6 @@
     </div>
 
     <script>
-        // [Original Timer Logic Preserved]
         let isRunning = false;
         let timeoutId = null;
         let intervalId = null;
@@ -214,10 +296,12 @@
         const warnSeconds = document.getElementById('warnSeconds');
         const warnAlert = document.getElementById('warnAlert');
 
+        // Show/hide warning config when checkbox changes
         warningEnabled.addEventListener('change', () => {
             warningConfig.style.display = warningEnabled.checked ? 'flex' : 'none';
         });
 
+        // Format time as MM:SS.T (tenths of seconds)
         function formatTime(totalMilliseconds) {
             const totalSeconds = Math.floor(totalMilliseconds / 1000);
             const tenths = Math.floor((totalMilliseconds % 1000) / 100);
@@ -226,6 +310,7 @@
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${tenths}`;
         }
 
+        // Update timer display
         function updateTimer() {
             if (timerStartTime) {
                 const elapsed = Date.now() - timerStartTime;
@@ -233,13 +318,15 @@
             }
         }
 
+        // Start the count-up timer
         function startTimer() {
             timerStartTime = Date.now();
             elapsedSeconds = 0;
             timerDisplay.textContent = '00:00.0';
-            timerIntervalId = setInterval(updateTimer, 100);
+            timerIntervalId = setInterval(updateTimer, 100); // Update every 100ms for smooth tenths
         }
 
+        // Stop the count-up timer
         function stopTimer() {
             if (timerIntervalId) {
                 clearInterval(timerIntervalId);
@@ -248,85 +335,123 @@
             timerStartTime = null;
         }
 
+        // Create audio context on first user interaction
         function initAudio() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
         }
 
+        // Play beep sound
         function playBeep() {
             initAudio();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
+            
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
+            
             oscillator.frequency.value = 1000;
             oscillator.type = 'sine';
+            
             gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.5);
         }
 
+        // Play warning beep (different tone)
         function playWarningBeep() {
             initAudio();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
+            
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-            oscillator.frequency.value = 600;
+            
+            oscillator.frequency.value = 600; // Lower frequency for warning
             oscillator.type = 'sine';
+            
             gainNode.gain.setValueAtTime(0.6, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.3);
         }
 
+        // Vibrate device - single 0.5s burst
         function vibrate() {
             try {
                 if (window.navigator && window.navigator.vibrate) {
-                    window.navigator.vibrate(500);
+                    window.navigator.vibrate(500); // Single 0.5 second burst
+                    console.log('Vibration triggered');
+                } else {
+                    console.log('Vibration not supported');
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error('Vibration error:', e);
+            }
         }
 
+        // Warning vibration (shorter)
         function vibrateWarning() {
             try {
                 if (window.navigator && window.navigator.vibrate) {
-                    window.navigator.vibrate(300);
+                    window.navigator.vibrate(300); // Shorter 0.3 second burst
+                    console.log('Warning vibration triggered');
+                } else {
+                    console.log('Vibration not supported');
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error('Vibration error:', e);
+            }
         }
 
+        // Warning alert
         function warning() {
             vibrateWarning();
             playWarningBeep();
         }
 
+        // Alert with vibration and sound
         function alert() {
             count++;
             counter.textContent = `Alerts: ${count}`;
+            console.log('Alert triggered, count:', count);
+            
+            // Vibrate first
             vibrate();
+            
+            // Then play sound
             playBeep();
         }
 
+        // Schedule next alert
         function scheduleNext() {
             const interval = parseInt(intervalInput.value) * 1000;
+            
+            // Check if we need to schedule a warning for the NEXT alert
             if (warningEnabled.checked) {
                 const targetAlert = parseInt(warnAlert.value);
                 const warnTime = parseInt(warnSeconds.value) * 1000;
+                
+                // If the NEXT alert (count + 1) will be the target alert number, schedule warning
                 if (count + 1 === targetAlert && interval > warnTime) {
                     warningTimeoutId = setTimeout(() => {
                         warning();
                     }, interval - warnTime);
                 }
             }
+            
+            // Schedule the next regular alert
             timeoutId = setTimeout(() => {
                 alert();
                 scheduleNext();
             }, interval);
         }
 
+        // Start the timer
         function start() {
             initAudio();
             isRunning = true;
@@ -341,25 +466,43 @@
             startBtn.classList.add('waiting');
             status.textContent = 'Get ready...';
 
+            // Random delay between 3-5 seconds
             const randomDelay = Math.random() * 2000 + 3000;
+            
             timeoutId = setTimeout(() => {
                 startBtn.textContent = 'RUNNING';
                 startBtn.classList.remove('waiting');
                 startBtn.classList.add('running');
                 status.textContent = 'Timer active';
+                
+                // START signal - vibrate and beep to tell user to start running
                 vibrate();
                 playBeep();
+                
+                // Start the count-up timer
                 startTimer();
+                
+                // Schedule the FIRST counted alert
                 scheduleNext();
             }, randomDelay);
         }
 
+        // Stop the timer
         function stop() {
             isRunning = false;
-            if (timeoutId) clearTimeout(timeoutId);
-            if (warningTimeoutId) clearTimeout(warningTimeoutId);
-            if (intervalId) clearInterval(intervalId);
-            stopTimer();
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            if (warningTimeoutId) {
+                clearTimeout(warningTimeoutId);
+                warningTimeoutId = null;
+            }
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            stopTimer(); // Stop the count-up timer
             intervalInput.disabled = false;
             warningEnabled.disabled = false;
             warnSeconds.disabled = false;
@@ -367,21 +510,30 @@
             startBtn.textContent = 'START';
             startBtn.classList.remove('waiting', 'running');
             status.textContent = 'Stopped';
-            setTimeout(() => { status.textContent = ''; }, 2000);
+            setTimeout(() => {
+                status.textContent = '';
+            }, 2000);
         }
 
+        // Button click handler
         startBtn.addEventListener('click', () => {
-            if (!isRunning) start(); else stop();
+            if (!isRunning) {
+                start();
+            } else {
+                stop();
+            }
         });
 
-        // SERVICE WORKER REGISTRATION (New for PWA)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registered!'))
-                    .catch(err => console.log('Registration failed: ', err));
-            });
-        }
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
     </script>
 </body>
 </html>
+
