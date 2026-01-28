@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <title>Reaction Timer</title>
+    <style>
+        /* [Original styles preserved for brevity] */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 40px;
+            text-align: center;
+            color: #4a90e2;
+        }
+        .settings {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .setting-row:last-child {
+            margin-bottom: 0;
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .warning-config {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            padding-left: 30px;
+        }
+        .warning-config input[type="number"] {
+            width: 60px;
+        }
+        .warning-config span {
+            font-size: 0.9rem;
+            color: #ddd;
+        }
+        label {
+            font-size: 1rem;
+            color: #fff;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 10px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            text-align: center;
+        }
+        .start-btn {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.4);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .start-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+        .start-btn.running {
+            background: linear-gradient(135deg, #e2a44a, #bd8735);
+            box-shadow: 0 10px 30px rgba(226, 164, 74, 0.4);
+        }
+        .start-btn.waiting {
+            background: linear-gradient(135deg, #e24a4a, #bd3535);
+            box-shadow: 0 10px 30px rgba(226, 74, 74, 0.4);
+        }
+        .start-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            text-align: center;
+            min-height: 30px;
+            color: #4a90e2;
+        }
+        .counter {
+            margin-top: 20px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4a90e2;
+            min-height: 40px;
+        }
+        .timer {
+            margin-top: 15px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #e2a44a;
+            min-height: 50px;
+            font-family: 'Courier New', monospace;
+        }
+        @media (max-width: 400px) {
+            .start-btn {
+                width: 200px;
+                height: 200px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reaction Timer</h1>
+        
+        <div class="settings">
+            <div class="setting-row">
+                <label for="interval">Interval (seconds):</label>
+                <input type="number" id="interval" value="10" min="1" max="300">
+            </div>
+            <div class="checkbox-row">
+                <input type="checkbox" id="warningEnabled">
+                <label for="warningEnabled">Warning before alert</label>
+            </div>
+            <div class="warning-config" id="warningConfig" style="display: none;">
+                <span>Warn</span>
+                <input type="number" id="warnSeconds" value="3" min="1" max="10">
+                <span>sec before alert #</span>
+                <input type="number" id="warnAlert" value="4" min="2" max="99">
+            </div>
+        </div>
+
+        <button class="start-btn" id="startBtn">START</button>
+        
+        <div class="counter" id="counter">Alerts: 0</div>
+        <div class="timer" id="timer">00:00.0</div>
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        // [Original Timer Logic Preserved]
+        let isRunning = false;
+        let timeoutId = null;
+        let intervalId = null;
+        let audioContext = null;
+        let count = 0;
+        let timerStartTime = null;
+        let timerIntervalId = null;
+        let elapsedSeconds = 0;
+        let warningTimeoutId = null;
+
+        const startBtn = document.getElementById('startBtn');
+        const intervalInput = document.getElementById('interval');
+        const status = document.getElementById('status');
+        const counter = document.getElementById('counter');
+        const timerDisplay = document.getElementById('timer');
+        const warningEnabled = document.getElementById('warningEnabled');
+        const warningConfig = document.getElementById('warningConfig');
+        const warnSeconds = document.getElementById('warnSeconds');
+        const warnAlert = document.getElementById('warnAlert');
+
+        warningEnabled.addEventListener('change', () => {
+            warningConfig.style.display = warningEnabled.checked ? 'flex' : 'none';
+        });
+
+        function formatTime(totalMilliseconds) {
+            const totalSeconds = Math.floor(totalMilliseconds / 1000);
+            const tenths = Math.floor((totalMilliseconds % 1000) / 100);
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${tenths}`;
+        }
+
+        function updateTimer() {
+            if (timerStartTime) {
+                const elapsed = Date.now() - timerStartTime;
+                timerDisplay.textContent = formatTime(elapsed);
+            }
+        }
+
+        function startTimer() {
+            timerStartTime = Date.now();
+            elapsedSeconds = 0;
+            timerDisplay.textContent = '00:00.0';
+            timerIntervalId = setInterval(updateTimer, 100);
+        }
+
+        function stopTimer() {
+            if (timerIntervalId) {
+                clearInterval(timerIntervalId);
+                timerIntervalId = null;
+            }
+            timerStartTime = null;
+        }
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playBeep() {
+            initAudio();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = 1000;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function playWarningBeep() {
+            initAudio();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = 600;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.6, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        function vibrate() {
+            try {
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(500);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function vibrateWarning() {
+            try {
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(300);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function warning() {
+            vibrateWarning();
+            playWarningBeep();
+        }
+
+        function alert() {
+            count++;
+            counter.textContent = `Alerts: ${count}`;
+            vibrate();
+            playBeep();
+        }
+
+        function scheduleNext() {
+            const interval = parseInt(intervalInput.value) * 1000;
+            if (warningEnabled.checked) {
+                const targetAlert = parseInt(warnAlert.value);
+                const warnTime = parseInt(warnSeconds.value) * 1000;
+                if (count + 1 === targetAlert && interval > warnTime) {
+                    warningTimeoutId = setTimeout(() => {
+                        warning();
+                    }, interval - warnTime);
+                }
+            }
+            timeoutId = setTimeout(() => {
+                alert();
+                scheduleNext();
+            }, interval);
+        }
+
+        function start() {
+            initAudio();
+            isRunning = true;
+            count = 0;
+            counter.textContent = 'Alerts: 0';
+            timerDisplay.textContent = '';
+            intervalInput.disabled = true;
+            warningEnabled.disabled = true;
+            warnSeconds.disabled = true;
+            warnAlert.disabled = true;
+            startBtn.textContent = 'WAITING...';
+            startBtn.classList.add('waiting');
+            status.textContent = 'Get ready...';
+
+            const randomDelay = Math.random() * 2000 + 3000;
+            timeoutId = setTimeout(() => {
+                startBtn.textContent = 'RUNNING';
+                startBtn.classList.remove('waiting');
+                startBtn.classList.add('running');
+                status.textContent = 'Timer active';
+                vibrate();
+                playBeep();
+                startTimer();
+                scheduleNext();
+            }, randomDelay);
+        }
+
+        function stop() {
+            isRunning = false;
+            if (timeoutId) clearTimeout(timeoutId);
+            if (warningTimeoutId) clearTimeout(warningTimeoutId);
+            if (intervalId) clearInterval(intervalId);
+            stopTimer();
+            intervalInput.disabled = false;
+            warningEnabled.disabled = false;
+            warnSeconds.disabled = false;
+            warnAlert.disabled = false;
+            startBtn.textContent = 'START';
+            startBtn.classList.remove('waiting', 'running');
+            status.textContent = 'Stopped';
+            setTimeout(() => { status.textContent = ''; }, 2000);
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (!isRunning) start(); else stop();
+        });
+
+        // SERVICE WORKER REGISTRATION (New for PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered!'))
+                    .catch(err => console.log('Registration failed: ', err));
+            });
+        }
+    </script>
+</body>
+</html>
