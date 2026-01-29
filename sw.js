@@ -3,7 +3,7 @@ const ASSETS = [
   './index.html',
   './manifest.json',
   './cat-icon.png',
-  './cat-icon-512.png'
+  './cat-icon-512.png',
   './background.jpg'
 ];
 

@@ -196,13 +196,13 @@ USAGE:
         }
 
         .start-btn {
-            width: 250px;
-            height: 250px;
+            width: 200px;
+            height: 200px;
             border-radius: 50%;
             border: none;
             background: linear-gradient(135deg, #4a90e2, #357abd);
             color: white;
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 10px 30px rgba(74, 144, 226, 0.4);
@@ -258,9 +258,9 @@ USAGE:
 
         @media (max-width: 400px) {
             .start-btn {
-                width: 200px;
-                height: 200px;
-                font-size: 1.5rem;
+                width: 160px;
+                height: 160px;
+                font-size: 1.3rem;
             }
         }
     </style>
@@ -273,6 +273,10 @@ USAGE:
             <div class="setting-row">
                 <label for="interval">Interval (seconds):</label>
                 <input type="number" id="interval" value="5" min="1" max="300">
+            </div>
+            <div class="checkbox-row">
+                <input type="checkbox" id="vibrationEnabled">
+                <label for="vibrationEnabled">Vibration</label>
             </div>
             <div class="checkbox-row">
                 <input type="checkbox" id="warningEnabled">
@@ -309,6 +313,7 @@ USAGE:
         const status = document.getElementById('status');
         const counter = document.getElementById('counter');
         const timerDisplay = document.getElementById('timer');
+        const vibrationEnabled = document.getElementById('vibrationEnabled');
         const warningEnabled = document.getElementById('warningEnabled');
         const warningConfig = document.getElementById('warningConfig');
         const warnSeconds = document.getElementById('warnSeconds');
@@ -401,6 +406,7 @@ USAGE:
 
         // Vibrate device - single 0.5s burst
         function vibrate() {
+            if (!vibrationEnabled.checked) return; // Skip if vibration disabled
             try {
                 if (window.navigator && window.navigator.vibrate) {
                     window.navigator.vibrate(500); // Single 0.5 second burst
@@ -415,6 +421,7 @@ USAGE:
 
         // Warning vibration (shorter)
         function vibrateWarning() {
+            if (!vibrationEnabled.checked) return; // Skip if vibration disabled
             try {
                 if (window.navigator && window.navigator.vibrate) {
                     window.navigator.vibrate(300); // Shorter 0.3 second burst
@@ -484,6 +491,7 @@ USAGE:
             // Lock all settings
             settingsPanel.classList.add('locked');
             intervalInput.disabled = true;
+            vibrationEnabled.disabled = true;
             warningEnabled.disabled = true;
             warnSeconds.disabled = true;
             warnAlert.disabled = true;
@@ -534,6 +542,7 @@ USAGE:
             // Unlock all settings
             settingsPanel.classList.remove('locked');
             intervalInput.disabled = false;
+            vibrationEnabled.disabled = false;
             warningEnabled.disabled = false;
             warnSeconds.disabled = false;
             warnAlert.disabled = false;
