@@ -4,7 +4,7 @@ Created: January 2026
 
 FEATURES:
 - Random start delay: 3-5 seconds after pressing START
-- Adjustable interval between alerts (default: 10 seconds)
+- Adjustable interval between alerts (default: 5 seconds)
 - Vibration + sound alert at each interval
 - Alert counter: tracks total number of alerts
 - Count-up timer: shows elapsed time in MM:SS.T format (includes tenths of seconds)
