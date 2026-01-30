@@ -1,10 +1,10 @@
 const CACHE_NAME = 'timer-cache-v1';
 const ASSETS = [
-  './index.html',
-  './manifest.json',
-  './cat-icon.png',
-  './cat-icon-512.png',
-  './background.jpg'
+  '/index.html',
+  '/manifest.json',
+  '/cat-icon.png',
+  '/cat-icon-512.png',
+  '/background.jpg'
 ];
 
 self.addEventListener('install', (e) => {
